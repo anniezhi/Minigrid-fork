@@ -132,6 +132,7 @@ class CrossingEnv(MiniGridEnv):
         self.agent_dir = 0
 
         # Place a goal square in the bottom-right corner
+        self.goal = (width - 2, height - 2)
         self.put_obj(Goal(), width - 2, height - 2)
 
         # Place obstacles (lava or walls)

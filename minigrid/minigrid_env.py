@@ -48,7 +48,7 @@ class MiniGridEnv(gym.Env):
         height: int = None,
         max_steps: int = 100,
         see_through_walls: bool = False,
-        agent_view_size: int = 5,
+        agent_view_size: int = 7,
         render_mode: Optional[str] = None,
         highlight: bool = True,
         tile_size: int = TILE_PIXELS,
@@ -109,6 +109,7 @@ class MiniGridEnv(gym.Env):
         # Current position and direction of the agent
         self.agent_pos: np.ndarray = None
         self.agent_dir: int = None
+        self.agent_speed: int = 2
 
         # Current grid and mission and carrying
         self.grid = Grid(width, height)
@@ -405,7 +406,8 @@ class MiniGridEnv(gym.Env):
         Get the position of the cell that is right in front of the agent
         """
 
-        return self.agent_pos + self.dir_vec
+        new_pos = self.agent_pos + self.dir_vec * self.agent_speed
+        return np.clip(new_pos, [0,0], [self.width, self.height])
 
     def get_view_coords(self, i, j):
         """
@@ -445,8 +447,8 @@ class MiniGridEnv(gym.Env):
 
         # Facing right
         if self.agent_dir == 0:
-            topX = self.agent_pos[0]
-            topY = self.agent_pos[1] - agent_view_size // 2
+            topX = self.agent_pos[0]                      #left
+            topY = self.agent_pos[1] - agent_view_size // 2       #up
         # Facing down
         elif self.agent_dir == 1:
             topX = self.agent_pos[0] - agent_view_size // 2
@@ -465,7 +467,7 @@ class MiniGridEnv(gym.Env):
         botX = topX + agent_view_size
         botY = topY + agent_view_size
 
-        return (topX, topY, botX, botY)
+        return (topX, topY, botX, botY)      #left, up, right, down
 
     def relative_coords(self, x, y):
         """
@@ -517,7 +519,7 @@ class MiniGridEnv(gym.Env):
         fwd_pos = self.front_pos
 
         # Get the contents of the cell in front of the agent
-        fwd_cell = self.grid.get(*fwd_pos)
+        fwd_cell = self.grid.get(*fwd_pos)    # * to unpack argument lists
 
         # Rotate left
         if action == self.actions.left:
@@ -566,7 +568,7 @@ class MiniGridEnv(gym.Env):
         else:
             raise ValueError(f"Unknown action: {action}")
 
-        if self.step_count >= self.max_steps:
+        if self.step_count >= self.max_steps:     # max_steps = 4*area if not otherwise stated
             truncated = True
 
         if self.render_mode == "human":
