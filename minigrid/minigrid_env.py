@@ -406,8 +406,8 @@ class MiniGridEnv(gym.Env):
         Get the position of the cell that is right in front of the agent
         """
 
-        new_pos = self.agent_pos + self.dir_vec * self.agent_speed
-        return np.clip(new_pos, [0,0], [self.width, self.height])
+        new_pos = [self.agent_pos + self.dir_vec * i for i in range(1,self.agent_speed+1)]
+        return [np.clip(pos, [0,0], [self.width-1, self.height-1]) for pos in new_pos]
 
     def get_view_coords(self, i, j):
         """
@@ -515,33 +515,48 @@ class MiniGridEnv(gym.Env):
         terminated = False
         truncated = False
 
-        # Get the position in front of the agent
-        fwd_pos = self.front_pos
+        # Get the positions in front of the agent (a list)
+        fwd_poss = self.front_pos
+        fwd_pos = fwd_poss[0]
 
         # Get the contents of the cell in front of the agent
-        fwd_cell = self.grid.get(*fwd_pos)    # * to unpack argument lists
+        fwd_cells = [self.grid.get(*pos) for pos in fwd_poss]    # * to unpack argument lists
+        fwd_cell = fwd_cells[0]
 
-        # Rotate left
+        # Rotate left (action == 0)
         if action == self.actions.left:
             self.agent_dir -= 1
             if self.agent_dir < 0:
                 self.agent_dir += 4
 
-        # Rotate right
+        # Rotate right (action == 1)
         elif action == self.actions.right:
             self.agent_dir = (self.agent_dir + 1) % 4
 
-        # Move forward
+        # Move forward (action == 2)
         elif action == self.actions.forward:
-            if fwd_cell is None or fwd_cell.can_overlap():
-                self.agent_pos = tuple(fwd_pos)
-            if fwd_cell is not None and fwd_cell.type == "goal":
-                terminated = True
-                reward = self._reward()
-            if fwd_cell is not None and fwd_cell.type == "lava":
-                terminated = True
+            for i, cell in enumerate(fwd_cells):
+                if cell is not None and cell.type == 'lava':
+                    terminated = True
+                    break
+                if cell is not None and cell.type == 'wall':
+                    break
+                if cell is not None and cell.type == 'goal':
+                    terminated = True
+                    reward = self._reward()
+                    break
+                if cell is None or cell.can_overlap():
+                    self.agent_pos = tuple(fwd_poss[i])        
 
-        # Pick up an object
+            # if fwd_cell is None or fwd_cell.can_overlap():
+            #     self.agent_pos = tuple(fwd_pos)
+            # if fwd_cell is not None and fwd_cell.type == "goal":
+            #     terminated = True
+            #     reward = self._reward()
+            # if fwd_cell is not None and fwd_cell.type == "lava":
+            #     terminated = True
+
+        # Pick up an object (action == 3)
         elif action == self.actions.pickup:
             if fwd_cell and fwd_cell.can_pickup():
                 if self.carrying is None:
@@ -549,19 +564,19 @@ class MiniGridEnv(gym.Env):
                     self.carrying.cur_pos = np.array([-1, -1])
                     self.grid.set(fwd_pos[0], fwd_pos[1], None)
 
-        # Drop an object
+        # Drop an object (action == 4)
         elif action == self.actions.drop:
             if not fwd_cell and self.carrying:
                 self.grid.set(fwd_pos[0], fwd_pos[1], self.carrying)
                 self.carrying.cur_pos = fwd_pos
                 self.carrying = None
 
-        # Toggle/activate an object
+        # Toggle/activate an object (action == 5)
         elif action == self.actions.toggle:
             if fwd_cell:
                 fwd_cell.toggle(self, fwd_pos)
 
-        # Done action (not used by default)
+        # Done action (not used by default) (action == 6)
         elif action == self.actions.done:
             pass
 
