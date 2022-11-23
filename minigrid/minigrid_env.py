@@ -53,6 +53,7 @@ class MiniGridEnv(gym.Env):
         highlight: bool = True,
         tile_size: int = TILE_PIXELS,
         agent_pov: bool = False,
+        agent_speed: int = 1
     ):
         # Initialize mission
         self.mission = mission_space.sample()
@@ -109,7 +110,7 @@ class MiniGridEnv(gym.Env):
         # Current position and direction of the agent
         self.agent_pos: np.ndarray = None
         self.agent_dir: int = None
-        self.agent_speed: int = 2
+        self.agent_speed = agent_speed
 
         # Current grid and mission and carrying
         self.grid = Grid(width, height)
