@@ -1,6 +1,7 @@
 import itertools as itt
 from typing import Optional
 
+from gymnasium.spaces import Discrete
 import numpy as np
 
 from minigrid.core.grid import Grid
@@ -93,6 +94,7 @@ class CrossingEnv(MiniGridEnv):
     ):
         self.num_crossings = num_crossings
         self.obstacle_type = obstacle_type
+        self.shuffle = kwargs.pop('shuffle')
 
         if obstacle_type == Lava:
             mission_space = MissionSpace(mission_func=self._gen_mission_lava)
@@ -136,49 +138,147 @@ class CrossingEnv(MiniGridEnv):
         self.put_obj(Goal(), width - 2, height - 2)
 
         # Place obstacles (lava or walls)
-        v, h = object(), object()  # singleton `vertical` and `horizontal` objects
+        self.v, self.h = object(), object()  # singleton `vertical` and `horizontal` objects
 
         # Lava rivers or walls specified by direction and position in grid
-        rivers = [(v, i) for i in range(2, height - 2, 2)]
-        rivers += [(h, j) for j in range(2, width - 2, 2)]
+        rivers = [(self.v, i) for i in range(2, height - 2, 2)]
+        rivers += [(self.h, j) for j in range(2, width - 2, 2)]
         self.np_random.shuffle(rivers)
         rivers = rivers[: self.num_crossings]  # sample random rivers
-        rivers_v = sorted(pos for direction, pos in rivers if direction is v)
-        rivers_h = sorted(pos for direction, pos in rivers if direction is h)
+        rivers_v = sorted(pos for direction, pos in rivers if direction is self.v)
+        rivers_h = sorted(pos for direction, pos in rivers if direction is self.h)
+        # self.rivers_v = rivers_v
+        # self.rivers_h = rivers_h
         obstacle_pos = itt.chain(
             itt.product(range(1, width - 1), rivers_h),
             itt.product(rivers_v, range(1, height - 1)),
         )
+        self.obstacle_pos = []
         for i, j in obstacle_pos:
+            self.obstacle_pos.append((i,j))
             self.put_obj(self.obstacle_type(), i, j)
 
         # Sample path to goal
-        path = [h] * len(rivers_v) + [v] * len(rivers_h)
+        path = [self.h] * len(rivers_v) + [self.v] * len(rivers_h)
+        self.path = path
         self.np_random.shuffle(path)
 
         # Create openings
         limits_v = [0] + rivers_v + [height - 1]
         limits_h = [0] + rivers_h + [width - 1]
+        self.limits_v = limits_v
+        self.limits_h = limits_h
         room_i, room_j = 0, 0
+        self.openings = []
         for direction in path:
-            if direction is h:
+            if direction is self.h:
                 i = limits_v[room_i + 1]
                 j = self.np_random.choice(
                     range(limits_h[room_j] + 1, limits_h[room_j + 1])
                 )
                 room_i += 1
-            elif direction is v:
+            elif direction is self.v:
                 i = self.np_random.choice(
                     range(limits_v[room_i] + 1, limits_v[room_i + 1])
-                )
-                j = limits_h[room_j + 1]
+                )   # sampled position along the wall 
+                j = limits_h[room_j + 1]  # wall location
                 room_j += 1
             else:
                 assert False
             self.grid.set(i, j, None)
+            self.openings.append((i,j))
 
         self.mission = (
             "avoid the lava and get to the green goal square"
             if self.obstacle_type == Lava
             else "find the opening and get to the green goal square"
         )
+
+    def step(self, action):
+        # Update the agent's position/direction
+        obs, reward, terminated, truncated, info = super().step(action)
+
+        # Update wall/opening positions
+        if self.shuffle is not None:
+            height = self.grid.height
+            width = self.grid.width
+            if self.shuffle == 'wall':
+                # Set old wall to None
+                for pos in self.obstacle_pos:
+                    self.grid.set(pos[0], pos[1], None)
+                # Lava rivers or walls specified by direction and position in grid
+                rivers = [(self.v, i) for i in range(1, height - 2, 1) if i != self.agent_pos[0]]
+                rivers += [(self.h, j) for j in range(1, width - 2, 1) if j != self.agent_pos[1]]
+                self.np_random.shuffle(rivers)
+                rivers = rivers[: self.num_crossings]  # sample random rivers
+                rivers_v = sorted(pos for direction, pos in rivers if direction is self.v)
+                rivers_h = sorted(pos for direction, pos in rivers if direction is self.h)
+                obstacle_pos = itt.chain(
+                    itt.product(range(1, width - 1), rivers_h),
+                    itt.product(rivers_v, range(1, height - 1)),
+                )
+                self.obstacle_pos = []
+                for i, j in obstacle_pos:
+                    self.obstacle_pos.append((i,j))
+                    self.put_obj(self.obstacle_type(), i, j)
+
+                # Sample path to goal
+                path = [self.h] * len(rivers_v) + [self.v] * len(rivers_h)
+                self.np_random.shuffle(path)
+
+                # Create openings
+                limits_v = [0] + rivers_v + [height - 1]
+                limits_h = [0] + rivers_h + [width - 1]
+                room_i, room_j = 0, 0
+                self.openings = []
+                for direction in path:
+                    if direction is self.h:
+                        i = limits_v[room_i + 1]
+                        j = self.np_random.choice(
+                            range(limits_h[room_j] + 1, limits_h[room_j + 1])
+                        )
+                        room_i += 1
+                    elif direction is self.v:
+                        i = self.np_random.choice(
+                            range(limits_v[room_i] + 1, limits_v[room_i + 1])
+                        )
+                        j = limits_h[room_j + 1]
+                        room_j += 1
+                    else:
+                        assert False
+                    self.grid.set(i, j, None)
+                    self.openings.append((i,j))
+
+            elif self.shuffle == 'opening':
+                # Set old opening to Wall
+                for pos in self.openings:
+                    self.put_obj(self.obstacle_type(), pos[0], pos[1])
+
+                # Sample path to goal
+                path = self.path
+                self.np_random.shuffle(path)
+
+                # Create openings
+                # limits_v = [0] + rivers_v + [height - 1]
+                # limits_h = [0] + rivers_h + [width - 1]
+                room_i, room_j = 0, 0
+                self.openings = []
+                for direction in path:
+                    if direction is self.h:
+                        i = self.limits_v[room_i + 1]
+                        j = self.np_random.choice(
+                            range(self.limits_h[room_j] + 1, self.limits_h[room_j + 1])
+                        )
+                        room_i += 1
+                    elif direction is self.v:
+                        i = self.np_random.choice(
+                            range(self.limits_v[room_i] + 1, self.limits_v[room_i + 1])
+                        )
+                        j = self.limits_h[room_j + 1]
+                        room_j += 1
+                    else:
+                        assert False
+                    self.grid.set(i, j, None)
+                    self.openings.append((i,j))
+
+        return obs, reward, terminated, truncated, info

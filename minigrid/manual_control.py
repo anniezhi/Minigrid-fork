@@ -105,10 +105,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--agent-view-size", type=int, help="agent vision square length", default=7
     )
+    parser.add_argument(
+        "--shuffle", type=str, help="shuffling obstacles during episodes"
+    )
 
     args = parser.parse_args()
 
-    env: MiniGridEnv = gym.make(args.env, tile_size=args.tile_size, agent_view_size=args.agent_view_size)
+    env: MiniGridEnv = gym.make(args.env, tile_size=args.tile_size, agent_view_size=args.agent_view_size, shuffle=args.shuffle)
 
     if args.agent_view:
         print("Using agent view")
