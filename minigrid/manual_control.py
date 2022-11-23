@@ -102,10 +102,13 @@ if __name__ == "__main__":
         help="draw the agent sees (partially observable view)",
         action="store_true",
     )
+    parser.add_argument(
+        "--agent-view-size", type=int, help="agent vision square length", default=7
+    )
 
     args = parser.parse_args()
 
-    env: MiniGridEnv = gym.make(args.env, tile_size=args.tile_size)
+    env: MiniGridEnv = gym.make(args.env, tile_size=args.tile_size, agent_view_size=args.agent_view_size)
 
     if args.agent_view:
         print("Using agent view")
