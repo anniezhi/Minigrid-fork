@@ -549,14 +549,6 @@ class MiniGridEnv(gym.Env):
                 if cell is None or cell.can_overlap():
                     self.agent_pos = tuple(fwd_poss[i])        
 
-            # if fwd_cell is None or fwd_cell.can_overlap():
-            #     self.agent_pos = tuple(fwd_pos)
-            # if fwd_cell is not None and fwd_cell.type == "goal":
-            #     terminated = True
-            #     reward = self._reward()
-            # if fwd_cell is not None and fwd_cell.type == "lava":
-            #     terminated = True
-
         # Pick up an object (action == 3)
         elif action == self.actions.pickup:
             if fwd_cell and fwd_cell.can_pickup():
