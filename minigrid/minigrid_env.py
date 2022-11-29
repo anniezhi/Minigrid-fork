@@ -407,7 +407,7 @@ class MiniGridEnv(gym.Env):
         Get the position of the cell that is right in front of the agent
         """
 
-        new_pos = [self.agent_pos + self.dir_vec * i for i in range(1,self.agent_speed+1)]
+        new_pos = [self.agent_pos + self.dir_vec * i for i in range(1,self.stepsize+1)]
         return [np.clip(pos, [0,0], [self.width-1, self.height-1]) for pos in new_pos]
 
     def get_view_coords(self, i, j):
@@ -510,6 +510,10 @@ class MiniGridEnv(gym.Env):
         return obs_cell is not None and obs_cell.type == world_cell.type
 
     def step(self, action):
+        action_type, action_scale = action
+        assert action_scale.size == 1
+        action_scale = np.rint(np.clip(action_scale, 0, 1))
+        self.stepsize = np.clip(int(action_scale * self.agent_speed), 1, self.width-2)
         self.step_count += 1
 
         reward = 0
@@ -525,17 +529,17 @@ class MiniGridEnv(gym.Env):
         fwd_cell = fwd_cells[0]
 
         # Rotate left (action == 0)
-        if action == self.actions.left:
+        if action_type == self.actions.left:
             self.agent_dir -= 1
             if self.agent_dir < 0:
                 self.agent_dir += 4
 
         # Rotate right (action == 1)
-        elif action == self.actions.right:
+        elif action_type == self.actions.right:
             self.agent_dir = (self.agent_dir + 1) % 4
 
         # Move forward (action == 2)
-        elif action == self.actions.forward:
+        elif action_type == self.actions.forward:
             for i, cell in enumerate(fwd_cells):
                 if cell is not None and cell.type == 'lava':
                     terminated = True
@@ -547,10 +551,10 @@ class MiniGridEnv(gym.Env):
                     reward = self._reward()
                     break
                 if cell is None or cell.can_overlap():
-                    self.agent_pos = tuple(fwd_poss[i])        
+                    self.agent_pos = tuple(fwd_poss[i])
 
         # Pick up an object (action == 3)
-        elif action == self.actions.pickup:
+        elif action_type == self.actions.pickup:
             if fwd_cell and fwd_cell.can_pickup():
                 if self.carrying is None:
                     self.carrying = fwd_cell
@@ -558,19 +562,19 @@ class MiniGridEnv(gym.Env):
                     self.grid.set(fwd_pos[0], fwd_pos[1], None)
 
         # Drop an object (action == 4)
-        elif action == self.actions.drop:
+        elif action_type == self.actions.drop:
             if not fwd_cell and self.carrying:
                 self.grid.set(fwd_pos[0], fwd_pos[1], self.carrying)
                 self.carrying.cur_pos = fwd_pos
                 self.carrying = None
 
         # Toggle/activate an object (action == 5)
-        elif action == self.actions.toggle:
+        elif action_type == self.actions.toggle:
             if fwd_cell:
                 fwd_cell.toggle(self, fwd_pos)
 
         # Done action (not used by default) (action == 6)
-        elif action == self.actions.done:
+        elif action_type == self.actions.done:
             pass
 
         else:
