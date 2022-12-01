@@ -95,6 +95,7 @@ class CrossingEnv(MiniGridEnv):
         self.num_crossings = num_crossings
         self.obstacle_type = obstacle_type
         self.shuffle = kwargs.pop('shuffle')
+        self.random_goal = kwargs.pop('random_goal')
 
         if obstacle_type == Lava:
             mission_space = MissionSpace(mission_func=self._gen_mission_lava)
@@ -133,22 +134,25 @@ class CrossingEnv(MiniGridEnv):
         self.agent_pos = np.array((1, 1))
         self.agent_dir = 0
 
-        # Place a goal square in the bottom-right corner
-        self.goal = (width - 2, height - 2)
-        self.put_obj(Goal(), width - 2, height - 2)
+        if self.random_goal:
+            self.goal = self.place_obj(Goal())
+        else:
+            # Place a goal square in the bottom-right corner
+            self.goal = (width - 2, height - 2)
+            self.put_obj(Goal(), width - 2, height - 2)
 
         # Place obstacles (lava or walls)
         self.v, self.h = object(), object()  # singleton `vertical` and `horizontal` objects
 
         # Lava rivers or walls specified by direction and position in grid
-        rivers = [(self.v, i) for i in range(2, height - 2, 2)]
-        rivers += [(self.h, j) for j in range(2, width - 2, 2)]
+        # rivers = [(self.v, i) for i in range(2, height - 2, 2)]
+        # rivers += [(self.h, j) for j in range(2, width - 2, 2)]
+        rivers = [(self.v, i) for i in range(2, height-2, 1) if i != self.goal[0]]
+        rivers += [(self.h, j) for j in range(2, width-2, 1) if j != self.goal[1]]
         self.np_random.shuffle(rivers)
         rivers = rivers[: self.num_crossings]  # sample random rivers
         rivers_v = sorted(pos for direction, pos in rivers if direction is self.v)
         rivers_h = sorted(pos for direction, pos in rivers if direction is self.h)
-        # self.rivers_v = rivers_v
-        # self.rivers_h = rivers_h
         obstacle_pos = itt.chain(
             itt.product(range(1, width - 1), rivers_h),
             itt.product(rivers_v, range(1, height - 1)),

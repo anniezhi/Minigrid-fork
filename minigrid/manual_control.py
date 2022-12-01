@@ -112,11 +112,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "--shuffle", type=str, help="shuffling obstacles during episodes"
     )
-    parser.add_argument("--agent-speed", type=int, default=1, help="agent maximum step size at one move")
+    parser.add_argument(
+        "--agent-speed", type=int, default=1, help="agent maximum step size at one move")
+    parser.add_argument(
+        "--random-goal",
+        default=False,
+        help="randomly place the goal in the grid",
+        action="store_true",
+    )
 
     args = parser.parse_args()
 
-    env: MiniGridEnv = gym.make(args.env, tile_size=args.tile_size, agent_view_size=args.agent_view_size, shuffle=args.shuffle, agent_speed=args.agent_speed)
+    env: MiniGridEnv = gym.make(args.env, tile_size=args.tile_size, agent_view_size=args.agent_view_size, shuffle=args.shuffle, random_goal=args.random_goal, agent_speed=args.agent_speed)
 
     if args.agent_view:
         print("Using agent view")
