@@ -6,18 +6,22 @@ from minigrid.minigrid_env import MiniGridEnv
 from minigrid.utils.window import Window
 from minigrid.wrappers import ImgObsWrapper, RGBImgPartialObsWrapper
 
+import numpy as np
+
 
 class ManualControl:
     def __init__(
         self,
         env: MiniGridEnv,
         agent_view: bool = False,
+        agent_speed: int = 1,
         window: Window = None,
         seed=None,
     ) -> None:
         self.env = env
         self.agent_view = agent_view
         self.seed = seed
+        self.agent_speed=agent_speed
 
         if window is None:
             window = Window("minigrid - " + str(env.__class__))
@@ -30,7 +34,7 @@ class ManualControl:
         self.window.show(block=True)
 
     def step(self, action: MiniGridEnv.Actions):
-        _, reward, terminated, truncated, _ = self.env.step(action)
+        _, reward, terminated, truncated, _ = self.env.step((action,np.array(1)))
         print(f"step={self.env.step_count}, reward={reward:.2f}")
 
         if terminated:
@@ -108,15 +112,16 @@ if __name__ == "__main__":
     parser.add_argument(
         "--shuffle", type=str, help="shuffling obstacles during episodes"
     )
+    parser.add_argument("--agent-speed", type=int, default=1, help="agent maximum step size at one move")
 
     args = parser.parse_args()
 
-    env: MiniGridEnv = gym.make(args.env, tile_size=args.tile_size, agent_view_size=args.agent_view_size, shuffle=args.shuffle)
+    env: MiniGridEnv = gym.make(args.env, tile_size=args.tile_size, agent_view_size=args.agent_view_size, shuffle=args.shuffle, agent_speed=args.agent_speed)
 
     if args.agent_view:
         print("Using agent view")
         env = RGBImgPartialObsWrapper(env, env.tile_size)
         env = ImgObsWrapper(env)
 
-    manual_control = ManualControl(env, agent_view=args.agent_view, seed=args.seed)
+    manual_control = ManualControl(env, agent_view=args.agent_view, seed=args.seed, agent_speed=args.agent_speed)
     manual_control.start()
