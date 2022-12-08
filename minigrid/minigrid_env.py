@@ -511,9 +511,8 @@ class MiniGridEnv(gym.Env):
 
     def step(self, action):
         action_type, action_scale = action
-        assert action_scale.size == 1
-        action_scale = np.rint(np.clip(action_scale, 0, 1))
-        self.stepsize = np.clip(int(action_scale * self.agent_speed), 1, self.width-2)
+        # action_scale = np.clip(action_scale, 0, 1)
+        self.stepsize = int(np.clip(np.rint(action_scale * self.agent_speed), 1, self.width-2))
         self.step_count += 1
 
         reward = 0
