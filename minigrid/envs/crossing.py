@@ -200,7 +200,7 @@ class CrossingEnv(MiniGridEnv):
 
     def step(self, action):
         # Update the agent's position/direction
-        obs, reward, terminated, truncated, info = super().step(action)
+        obs, reward, terminated, truncated, agent_pos, agent_dir, info = super().step(action)
 
         # Update wall/opening positions
         if self.shuffle is not None:
@@ -285,4 +285,4 @@ class CrossingEnv(MiniGridEnv):
                     self.grid.set(i, j, None)
                     self.openings.append((i,j))
 
-        return obs, reward, terminated, truncated, info
+        return obs, reward, terminated, truncated, agent_pos, agent_dir, info

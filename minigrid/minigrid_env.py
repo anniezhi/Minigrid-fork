@@ -587,7 +587,7 @@ class MiniGridEnv(gym.Env):
 
         obs = self.gen_obs()
 
-        return obs, reward, terminated, truncated, {}
+        return obs, reward, terminated, truncated, self.agent_pos, self.agent_dir, {}
 
     def gen_obs_grid(self, agent_view_size=None):
         """
