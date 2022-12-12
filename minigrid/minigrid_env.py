@@ -749,3 +749,9 @@ class MiniGridEnv(gym.Env):
     def close(self):
         if self.window:
             self.window.close()
+
+    def get_grid(self):
+        return self.grid
+
+    def get_agent_pos(self):
+        return self.agent_pos, self.agent_dir
