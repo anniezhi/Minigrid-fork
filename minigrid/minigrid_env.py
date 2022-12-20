@@ -72,7 +72,7 @@ class MiniGridEnv(gym.Env):
 
         # Number of cells (width and height) in the agent view
         assert agent_view_size % 2 == 1
-        assert agent_view_size >= 3
+        # assert agent_view_size >= 3
         self.agent_view_size = agent_view_size
 
         # Observations are dictionaries containing an

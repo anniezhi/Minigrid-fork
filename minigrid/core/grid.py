@@ -24,8 +24,8 @@ class Grid:
     tile_cache = {}
 
     def __init__(self, width: int, height: int):
-        assert width >= 3
-        assert height >= 3
+        # assert width >= 3
+        # assert height >= 3
 
         self.width: int = width
         self.height: int = height
