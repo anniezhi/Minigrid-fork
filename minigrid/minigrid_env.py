@@ -547,6 +547,7 @@ class MiniGridEnv(gym.Env):
                     break
                 if cell is not None and cell.type == 'goal':
                     terminated = True
+                    self.agent_pos = tuple(fwd_poss[i])
                     reward = self._reward()
                     break
                 if cell is None or cell.can_overlap():
