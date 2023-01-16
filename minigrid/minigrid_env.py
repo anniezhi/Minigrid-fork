@@ -549,6 +549,10 @@ class MiniGridEnv(gym.Env):
                     terminated = True
                     self.agent_pos = tuple(fwd_poss[i])
                     reward = cell.reward * self._reward()
+                    if cell.color == 'green':
+                        consumed = 1
+                    else:
+                        consumed = 2
                     break
                 if cell is None or cell.can_overlap():
                     self.agent_pos = tuple(fwd_poss[i])
@@ -582,12 +586,15 @@ class MiniGridEnv(gym.Env):
 
         if self.step_count >= self.max_steps:     # max_steps = 4*area if not otherwise stated
             truncated = True
+            consumed = None
 
         if self.render_mode == "human":
             self.render()
 
         obs = self.gen_obs()
 
+        if truncated or terminated:
+            return obs, reward, terminated, truncated, self.agent_pos, self.agent_dir, {'consumed': consumed}
         return obs, reward, terminated, truncated, self.agent_pos, self.agent_dir, {}
 
     def gen_obs_grid(self, agent_view_size=None):
