@@ -97,6 +97,7 @@ class CrossingEnvMultiGoal(MiniGridEnv):
         self.obstacle_type = obstacle_type
         self.shuffle = kwargs.pop('shuffle')
         self.random_goal = kwargs.pop('random_goal')
+        self.rewards = kwargs.pop('rewards')
 
         if obstacle_type == Lava:
             mission_space = MissionSpace(mission_func=self._gen_mission_lava)
@@ -140,12 +141,15 @@ class CrossingEnvMultiGoal(MiniGridEnv):
         else:
             # Place a goal square in the bottom-right corner
             self.goal_1 = (width - 2, height - 2)
-            reward_goal_1 = random.uniform(0,1)
+            # reward_goal_1 = random.uniform(0,1)
+            reward_goal_1 = self.rewards[0]
             goal_obj = Goal(reward_goal_1)
             self.put_obj(goal_obj, width - 2, height - 2)
             # Place a goal square in the top-right corner
             self.goal_2 = (width - 2, 1)
-            goal_obj = Goal(1-reward_goal_1)
+            # reward_goal_2 = 1 - reward_goal_1
+            reward_goal_2 = self.rewards[1]
+            goal_obj = Goal(reward_goal_2)
             goal_obj.color = 'yellow'
             self.put_obj(goal_obj, width - 2, 1)
             self.goal = [self.goal_1, self.goal_2]

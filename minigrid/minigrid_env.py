@@ -49,6 +49,7 @@ class MiniGridEnv(gym.Env):
         max_steps: int = 100,
         see_through_walls: bool = False,
         agent_view_size: int = 7,
+        agent_view_type: str = 'self',
         render_mode: Optional[str] = None,
         highlight: bool = True,
         tile_size: int = TILE_PIXELS,
@@ -74,15 +75,24 @@ class MiniGridEnv(gym.Env):
         assert agent_view_size % 2 == 1
         # assert agent_view_size >= 3
         self.agent_view_size = agent_view_size
+        self.agent_view_type = agent_view_type
 
         # Observations are dictionaries containing an
         # encoding of the grid and a textual 'mission' string
-        image_observation_space = spaces.Box(
-            low=0,
-            high=255,
-            shape=(self.agent_view_size, self.agent_view_size, 3),
-            dtype="uint8",
-        )
+        if agent_view_type == 'self':
+            image_observation_space = spaces.Box(
+                low=0,
+                high=255,
+                shape=(self.agent_view_size, self.agent_view_size, 3),
+                dtype="uint8",
+            )
+        else:
+            image_observation_space = spaces.Box(
+                low=0,
+                high=255,
+                shape=(width, height, 3),
+                dtype="uint8",
+            )
         self.observation_space = spaces.Dict(
             {
                 "image": image_observation_space,
@@ -638,8 +648,11 @@ class MiniGridEnv(gym.Env):
         """
         Generate the agent's view (partially observable, low-resolution encoding)
         """
-
-        grid, vis_mask = self.gen_obs_grid()
+        if self.agent_view_type == 'self':
+            grid, vis_mask = self.gen_obs_grid()
+        else:
+            grid = self.grid
+            vis_mask = None
 
         # Encode the partially observable view into a numpy array
         image = grid.encode(vis_mask)
