@@ -97,6 +97,7 @@ class MiniGridEnv(gym.Env):
             {
                 "image": image_observation_space,
                 "direction": spaces.Discrete(4),
+                "position": spaces.Box(low=0,high=8,shape=(2,),dtype='uint8'),
                 "mission": mission_space,
             }
         )
@@ -557,7 +558,8 @@ class MiniGridEnv(gym.Env):
                     break
                 if cell is not None and cell.type == 'goal':
                     terminated = True
-                    self.agent_pos = tuple(fwd_poss[i])
+                    # self.agent_pos = tuple(fwd_poss[i])
+                    self.agent_pos = fwd_poss[i]
                     reward = cell.reward * self._reward()
                     if cell.color == 'green':
                         consumed = 1
@@ -565,7 +567,8 @@ class MiniGridEnv(gym.Env):
                         consumed = 2
                     break
                 if cell is None or cell.can_overlap():
-                    self.agent_pos = tuple(fwd_poss[i])
+                    # self.agent_pos = tuple(fwd_poss[i])
+                    self.agent_pos = fwd_poss[i]
 
         # Pick up an object (action == 3)
         elif action_type == self.actions.pickup:
@@ -652,6 +655,7 @@ class MiniGridEnv(gym.Env):
             grid, vis_mask = self.gen_obs_grid()
         else:
             grid = self.grid
+            # grid.set(self.agent_pos[0], self.agent_pos[1], 'agent')
             vis_mask = None
 
         # Encode the partially observable view into a numpy array
@@ -661,7 +665,8 @@ class MiniGridEnv(gym.Env):
         # - an image (partially observable view of the environment)
         # - the agent's direction/orientation (acting as a compass)
         # - a textual mission string (instructions for the agent)
-        obs = {"image": image, "direction": self.agent_dir, "mission": self.mission}
+        # obs = {"image": image, "direction": self.agent_dir, "position": self.agent_pos, "mission": self.mission}
+        obs = {"image": image, "direction": self.agent_dir, "mission": self.mission, "position": self.agent_pos.astype('uint8')}
 
         return obs
 
