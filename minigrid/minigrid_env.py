@@ -599,7 +599,7 @@ class MiniGridEnv(gym.Env):
 
         if self.step_count >= self.max_steps:     # max_steps = 4*area if not otherwise stated
             truncated = True
-            consumed = None
+            consumed = 0
 
         if self.render_mode == "human":
             self.render()
