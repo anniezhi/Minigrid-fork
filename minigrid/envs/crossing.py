@@ -113,6 +113,9 @@ class CrossingEnv(MiniGridEnv):
             **kwargs
         )
 
+        # Allow only 3 actions permitted: left, right, forward
+        self.action_space = Discrete(self.actions.forward + 1)
+
     @staticmethod
     def _gen_mission_lava():
         return "avoid the lava and get to the green goal square"
