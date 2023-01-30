@@ -139,7 +139,10 @@ class CrossingEnvMultiGoal(MiniGridEnv):
         self.grid.wall_rect(0, 0, width, height)
 
         # Place the agent in the top-left corner
-        self.agent_pos = np.array((1, 1))
+        # self.agent_pos = np.array((1, 1))
+        self.agent_pos = np.random.randint(1, width-1, 2)
+        while self.agent_pos[0] == width-2 and (self.agent_pos[1] == height-2 or self.agent_pos[1] == 1):
+            self.agent_pos = np.random.randint(1, width-1, 2)
         # self.agent_pos = np.array((1, 7))
         self.agent_dir = 0
 
@@ -165,10 +168,15 @@ class CrossingEnvMultiGoal(MiniGridEnv):
         self.v, self.h = object(), object()  # singleton `vertical` and `horizontal` objects
 
         # Lava rivers or walls specified by direction and position in grid
+        ## original
         # rivers = [(self.v, i) for i in range(2, height - 2, 2)]
         # rivers += [(self.h, j) for j in range(2, width - 2, 2)]
-        rivers = [(self.v, i) for i in range(2, height-2, 1) if (i != self.goal_1[0] and i != self.goal_2[0])]
-        rivers += [(self.h, j) for j in range(2, width-2, 1) if (j != self.goal_1[1] and j != self.goal_2[1])]
+        ## avoid goals, more location options in the middle
+        # rivers = [(self.v, i) for i in range(2, height-2, 1) if (i != self.goal_1[0] and i != self.goal_2[0])]
+        # rivers += [(self.h, j) for j in range(2, width-2, 1) if (j != self.goal_1[1] and j != self.goal_2[1])]
+        ## avoid goals and agent, more location options on the edge
+        rivers = [(self.v, i) for i in range(1, height-2, 1) if (i != self.goal_1[0] and i != self.goal_2[0] and i != self.agent_pos[0])]
+        rivers += [(self.h, j) for j in range(1, width-2, 1) if (j != self.goal_1[1] and j != self.goal_2[1] and j != self.agent_pos[1])]
         self.np_random.shuffle(rivers)
         rivers = rivers[: self.num_crossings]  # sample random rivers
         rivers_v = sorted(pos for direction, pos in rivers if direction is self.v)

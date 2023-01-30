@@ -34,7 +34,7 @@ class ManualControl:
         self.window.show(block=True)
 
     def step(self, action: MiniGridEnv.Actions):
-        _, reward, terminated, truncated, _ = self.env.step((action,np.array(1)))
+        _, reward, terminated, truncated, _, _, _ = self.env.step((action,np.array(1)))
         print(f"step={self.env.step_count}, reward={reward:.2f}")
 
         if terminated:
