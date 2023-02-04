@@ -100,7 +100,7 @@ class CrossingEnvMultiGoal(MiniGridEnv):
         try:
             self.rewards = kwargs.pop('rewards')
         except:
-            self.rewards = [1,0]
+            self.rewards = [1,0,0]
 
         if obstacle_type == Lava:
             mission_space = MissionSpace(mission_func=self._gen_mission_lava)
@@ -141,7 +141,9 @@ class CrossingEnvMultiGoal(MiniGridEnv):
         # Place the agent in the top-left corner
         # self.agent_pos = np.array((1, 1))
         self.agent_pos = np.random.randint(1, width-1, 2)
-        while self.agent_pos[0] == width-2 and (self.agent_pos[1] == height-2 or self.agent_pos[1] == 1):
+        # avoid placing agent on goal places
+        agent_pos_avoid = [width-2, 1]
+        while self.agent_pos[0] in agent_pos_avoid and self.agent_pos[1] in agent_pos_avoid:       #[0]: width; [1]: height
             self.agent_pos = np.random.randint(1, width-1, 2)
         # self.agent_pos = np.array((1, 7))
         self.agent_dir = 0
@@ -149,20 +151,24 @@ class CrossingEnvMultiGoal(MiniGridEnv):
         if self.random_goal:
             self.goal = self.place_obj(Goal())
         else:
-            # Place a goal square in the bottom-right corner
+            # Place a goal square in the top-right corner
             self.goal_1 = (width - 2, height - 2)
             # reward_goal_1 = random.uniform(0,1)
-            reward_goal_1 = self.rewards[0]
-            goal_obj = Goal(reward_goal_1)
+            goal_obj = Goal(self.rewards[0])
+            goal_obj.color = 'green'
             self.put_obj(goal_obj, width - 2, height - 2)
-            # Place a goal square in the top-right corner
+            # Place a goal square in the bottom-right corner
             self.goal_2 = (width - 2, 1)
-            # reward_goal_2 = 1 - reward_goal_1
-            reward_goal_2 = self.rewards[1]
-            goal_obj = Goal(reward_goal_2)
+            goal_obj = Goal(self.rewards[1])
             goal_obj.color = 'yellow'
             self.put_obj(goal_obj, width - 2, 1)
-            self.goal = [self.goal_1, self.goal_2]
+            # Place a goal square in the bottom-left corner
+            self.goal_3 = (1, height - 2)
+            goal_obj = Goal(self.rewards[2])
+            goal_obj.color = 'orange'
+            self.put_obj(goal_obj, 1, height - 2)
+
+            self.goal = [self.goal_1, self.goal_2, self.goal_3]
 
         # Place obstacles (lava or walls)
         self.v, self.h = object(), object()  # singleton `vertical` and `horizontal` objects
@@ -175,8 +181,10 @@ class CrossingEnvMultiGoal(MiniGridEnv):
         # rivers = [(self.v, i) for i in range(2, height-2, 1) if (i != self.goal_1[0] and i != self.goal_2[0])]
         # rivers += [(self.h, j) for j in range(2, width-2, 1) if (j != self.goal_1[1] and j != self.goal_2[1])]
         ## avoid goals and agent, more location options on the edge
-        rivers = [(self.v, i) for i in range(1, height-2, 1) if (i != self.goal_1[0] and i != self.goal_2[0] and i != self.agent_pos[0])]
-        rivers += [(self.h, j) for j in range(1, width-2, 1) if (j != self.goal_1[1] and j != self.goal_2[1] and j != self.agent_pos[1])]
+        goal_pos_avoid_v = [self.goal_1[0], self.goal_2[0], self.goal_3[0], self.agent_pos[0]]
+        goal_pos_avoid_h = [self.goal_1[1], self.goal_2[1], self.goal_3[1], self.agent_pos[1]]
+        rivers = [(self.v, i) for i in range(1, height-2, 1) if i not in goal_pos_avoid_v]
+        rivers += [(self.h, j) for j in range(1, width-2, 1) if j not in goal_pos_avoid_h]
         self.np_random.shuffle(rivers)
         rivers = rivers[: self.num_crossings]  # sample random rivers
         rivers_v = sorted(pos for direction, pos in rivers if direction is self.v)
@@ -204,21 +212,23 @@ class CrossingEnvMultiGoal(MiniGridEnv):
         self.openings = []
         for direction in path:
             if direction is self.h:
-                i = limits_v[room_i + 1]
+                i = [limits_v[room_i + 1]]
                 j = self.np_random.choice(
-                    range(limits_h[room_j] + 1, limits_h[room_j + 1])
+                    range(limits_h[room_j] + 1, limits_h[room_j + 1]), 2, replace=False  # 2 openings on each wall
                 )
                 room_i += 1
             elif direction is self.v:
                 i = self.np_random.choice(
-                    range(limits_v[room_i] + 1, limits_v[room_i + 1])
+                    range(limits_v[room_i] + 1, limits_v[room_i + 1]), 2, replace=False   # 2 openings on each wall
                 )   # sampled position along the wall 
-                j = limits_h[room_j + 1]  # wall location
+                j = [limits_h[room_j + 1]]  # wall location
                 room_j += 1
             else:
                 assert False
-            self.grid.set(i, j, None)
-            self.openings.append((i,j))
+            for ii in i:
+                for jj in j:
+                    self.grid.set(ii, jj, None)
+                    self.openings.append((ii,jj))
 
         self.mission = (
             "avoid the lava and get to the green goal square"
@@ -267,12 +277,12 @@ class CrossingEnvMultiGoal(MiniGridEnv):
                     if direction is self.h:
                         i = limits_v[room_i + 1]
                         j = self.np_random.choice(
-                            range(limits_h[room_j] + 1, limits_h[room_j + 1])
+                            range(limits_h[room_j] + 1, limits_h[room_j + 1]),
                         )
                         room_i += 1
                     elif direction is self.v:
                         i = self.np_random.choice(
-                            range(limits_v[room_i] + 1, limits_v[room_i + 1])
+                            range(limits_v[room_i] + 1, limits_v[room_i + 1]),
                         )
                         j = limits_h[room_j + 1]
                         room_j += 1
