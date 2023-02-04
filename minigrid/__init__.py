@@ -63,8 +63,14 @@ def register_minigrid_envs():
 
     register(
         id="MiniGrid-SimpleCrossingS11N5-v0",
-        entry_point="gym_minigrid.envs:CrossingEnv",
+        entry_point="minigrid.envs:CrossingEnv",
         kwargs={"size": 11, "num_crossings": 5, "obstacle_type": Wall},
+    )
+
+    register(
+        id="MiniGrid-SimpleCrossingS11N1-v0",
+        entry_point="minigrid.envs:CrossingEnv",
+        kwargs={"size": 11, "num_crossings": 1, "obstacle_type": Wall},
     )
 
     # SimpleCrossing with multiple goals
@@ -76,6 +82,11 @@ def register_minigrid_envs():
         kwargs={"size": 9, "num_crossings": 1, "obstacle_type": Wall},
     )
 
+    register(
+        id="MiniGrid-SimpleCrossingMultiGoalS11N1-v0",
+        entry_point="minigrid.envs:CrossingEnvMultiGoal",
+        kwargs={"size": 11, "num_crossings": 1, "obstacle_type": Wall},
+    )
 
     # DistShift
     # ----------------------------------------
