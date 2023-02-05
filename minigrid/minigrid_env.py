@@ -563,8 +563,10 @@ class MiniGridEnv(gym.Env):
                     reward = cell.reward * self._reward()
                     if cell.color == 'green':
                         consumed = 1
-                    else:
+                    elif cell.color == 'yellow':
                         consumed = 2
+                    elif cell.color == 'orange':
+                        consumed = 3
                     break
                 if cell is None or cell.can_overlap():
                     # self.agent_pos = tuple(fwd_poss[i])
