@@ -769,7 +769,7 @@ class MiniGridEnv(gym.Env):
             if self.window is None:
                 self.window = Window("minigrid")
                 self.window.show(block=False)
-            self.window.set_caption(self.mission)
+            # self.window.set_caption(self.mission)
             self.window.show_img(img)
         elif self.render_mode == "rgb_array":
             return img
