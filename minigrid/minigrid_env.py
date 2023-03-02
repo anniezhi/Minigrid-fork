@@ -565,7 +565,8 @@ class MiniGridEnv(gym.Env):
                         consumed = 1
                     elif cell.color == 'yellow':
                         consumed = 2
-                    elif cell.color == 'orange':
+                    # elif cell.color == 'orange':
+                    elif cell.color == 'purple':
                         consumed = 3
                     break
                 if cell is None or cell.can_overlap():

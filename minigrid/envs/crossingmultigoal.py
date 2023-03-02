@@ -150,7 +150,15 @@ class CrossingEnvMultiGoal(MiniGridEnv):
         self.agent_dir = 0
 
         if self.random_goal:
-            self.goal = self.place_obj(Goal())
+            goal_obj = Goal(self.rewards[0])
+            goal_obj.color = 'green'
+            self.goal_1 = self.place_obj(goal_obj)
+            goal_obj = Goal(self.rewards[1])
+            goal_obj.color = 'yellow'
+            self.goal_2 = self.place_obj(goal_obj)
+            goal_obj = Goal(self.rewards[2])
+            goal_obj.color = 'purple'
+            self.goal_3 = self.place_obj(goal_obj)
         else:
             # Place a goal square in the top-right corner
             self.goal_1 = (width - 2, height - 2)
@@ -166,7 +174,8 @@ class CrossingEnvMultiGoal(MiniGridEnv):
             # Place a goal square in the bottom-left corner
             self.goal_3 = (1, height - 2)
             goal_obj = Goal(self.rewards[2])
-            goal_obj.color = 'orange'
+            # goal_obj.color = 'orange'
+            goal_obj.color = 'purple'
             self.put_obj(goal_obj, 1, height - 2)
 
             self.goal = [self.goal_1, self.goal_2, self.goal_3]
