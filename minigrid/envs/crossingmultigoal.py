@@ -341,3 +341,11 @@ class CrossingEnvMultiGoal(MiniGridEnv):
                     self.openings.append((i,j))
 
         return obs, reward, terminated, truncated, agent_pos, agent_dir, info
+
+    def get_goal(self):
+        if self.rewards[0] > max(self.rewards[1], self.rewards[2]):
+            return self.goal_1
+        if self.rewards[1] > max(self.rewards[0], self.rewards[2]):
+            return self.goal_2
+        if self.rewards[2] > max(self.rewards[0], self.rewards[1]):
+            return self.goal_3
