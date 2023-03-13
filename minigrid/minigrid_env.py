@@ -54,7 +54,7 @@ class MiniGridEnv(gym.Env):
         highlight: bool = True,
         tile_size: int = TILE_PIXELS,
         agent_pov: bool = False,
-        agent_speed: int = 1
+        agent_speed: int = 1,
     ):
         # Initialize mission
         self.mission = mission_space.sample()
@@ -689,7 +689,7 @@ class MiniGridEnv(gym.Env):
 
         return img
 
-    def get_full_render(self, highlight, tile_size):
+    def get_full_render(self, highlight, tile_size, show_agent_pos):
         """
         Render a non-paratial observation for visualization
         """
@@ -731,6 +731,7 @@ class MiniGridEnv(gym.Env):
         img = self.grid.render(
             tile_size,
             self.agent_pos,
+            show_agent_pos,
             self.agent_dir,
             highlight_mask=highlight_mask if highlight else None,
         )
@@ -742,6 +743,7 @@ class MiniGridEnv(gym.Env):
         highlight: bool = True,
         tile_size: int = TILE_PIXELS,
         agent_pov: bool = False,
+        show_agent_pos: bool = True,
     ):
         """Returns an RGB image corresponding to the whole environment or the agent's point of view.
 
@@ -760,11 +762,11 @@ class MiniGridEnv(gym.Env):
         if agent_pov:
             return self.get_pov_render(tile_size)
         else:
-            return self.get_full_render(highlight, tile_size)
+            return self.get_full_render(highlight, tile_size, show_agent_pos)
 
-    def render(self):
+    def render(self, show_agent_pos=True):
 
-        img = self.get_frame(self.highlight, self.tile_size, self.agent_pov)
+        img = self.get_frame(self.highlight, self.tile_size, self.agent_pov, show_agent_pos)
 
         if self.render_mode == "human":
             if self.window is None:

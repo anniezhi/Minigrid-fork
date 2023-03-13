@@ -195,6 +195,7 @@ class Grid:
         self,
         tile_size: int,
         agent_pos: Tuple[int, int],
+        show_agent_pos: bool = True,
         agent_dir: Optional[int] = None,
         highlight_mask: Optional[np.ndarray] = None,
     ) -> np.ndarray:
@@ -222,7 +223,7 @@ class Grid:
                 assert highlight_mask is not None
                 tile_img = Grid.render_tile(
                     cell,
-                    agent_dir=agent_dir if agent_here else None,
+                    agent_dir=agent_dir if agent_here and show_agent_pos else None,
                     highlight=highlight_mask[i, j],
                     tile_size=tile_size,
                 )
