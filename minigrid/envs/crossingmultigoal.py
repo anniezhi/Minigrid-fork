@@ -194,21 +194,18 @@ class CrossingEnvMultiGoal(MiniGridEnv):
         goal_pos_avoid_v = [self.goal_1[0], self.goal_2[0], self.goal_3[0], self.agent_pos[0]]
         goal_pos_avoid_h = [self.goal_1[1], self.goal_2[1], self.goal_3[1], self.agent_pos[1]]
         
-        plan_walls = True
-        while plan_walls:
-            if self.num_crossings == 1:
-                rivers = [(self.v, i) for i in range(1, height-2, 1) if i not in goal_pos_avoid_v]
-                rivers += [(self.h, j) for j in range(1, width-2, 1) if j not in goal_pos_avoid_h]
+        # plan_walls = True
+        # while plan_walls:
+        if self.num_crossings == 1:
+            rivers = [(self.v, i) for i in range(1, height-2, 1) if i not in goal_pos_avoid_v]
+            rivers += [(self.h, j) for j in range(1, width-2, 1) if j not in goal_pos_avoid_h]
+        else:
+            rand_dir = self.np_random.choice(2)
+            if rand_dir == 0:
+                rivers = [(self.v, i) for i in range(1, height-2, 2) if i not in goal_pos_avoid_v]
             else:
-                rand_dir = self.np_random.choice(2)
-                if rand_dir == 0:
-                    rivers = [(self.v, i) for i in range(1, height-2, 2) if i not in goal_pos_avoid_v]
-                else:
-                    rivers = [(self.h, j) for j in range(1, width-2, 2) if j not in goal_pos_avoid_h]
+                rivers = [(self.h, j) for j in range(1, width-2, 2) if j not in goal_pos_avoid_h]
 
-            if len(rivers) >= self.num_crossings:
-                plan_walls = False
-        
         self.np_random.shuffle(rivers)
         rivers = rivers[: self.num_crossings]  # sample random rivers
         rivers_v = sorted(pos for direction, pos in rivers if direction is self.v)
