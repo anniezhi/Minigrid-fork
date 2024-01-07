@@ -521,9 +521,10 @@ class MiniGridEnv(gym.Env):
         return obs_cell is not None and obs_cell.type == world_cell.type
 
     def step(self, action):
-        action_type, action_scale = action
+        action_type, action_scale = action, 1
         # action_scale = np.clip(action_scale, 0, 1)
         self.stepsize = int(np.clip(np.rint(action_scale * self.agent_speed), 1, self.width-2))
+        print(f"{self.stepsize=}")
         self.step_count += 1
 
         reward = 0

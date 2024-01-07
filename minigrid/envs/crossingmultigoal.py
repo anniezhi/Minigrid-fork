@@ -114,7 +114,7 @@ class CrossingEnvMultiGoal(MiniGridEnv):
         super().__init__(
             mission_space=mission_space,
             grid_size=size,
-            see_through_walls=True,  # Set this to True for maximum speed
+            # see_through_walls=True,  # Set this to True for maximum speed
             max_steps=max_steps,
             **kwargs
         )

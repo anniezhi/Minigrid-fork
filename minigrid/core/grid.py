@@ -174,12 +174,11 @@ class Grid:
                 (0.87, 0.50),
                 (0.12, 0.81),
             )
-
             # Rotate the agent based on its direction
             tri_fn = rotate_fn(tri_fn, cx=0.5, cy=0.5, theta=0.5 * math.pi * agent_dir)
             fill_coords(img, tri_fn, (255, 0, 0))
 
-            fill_coords(img, point_in_rect(0, 1, 0, 1), (255, 0, 0))
+            # fill_coords(img, point_in_rect(0, 1, 0, 1), (255, 0, 0))
 
         # Highlight the cell if needed
         if highlight:
